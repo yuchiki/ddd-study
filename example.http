@@ -1,12 +1,14 @@
 @port = 3000
-@url=http://localhost:${{port}}
+@url = http://localhost:{{port}}
 
 POST {{url}}/message
 Content-Type: application/json
 
 {
-  "userId": "1",
-  "content": "konnichiwa"
+  "userId": "2",
+  "content": "soudane"
 }
 
-GET ${{url}}/timeline
+###
+
+GET {{url}}/timeline

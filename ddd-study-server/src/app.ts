@@ -1,5 +1,6 @@
 import { zValidator } from '@hono/zod-validator'
 import { Hono } from 'hono'
+// eslint-disable-next-line import/no-unresolved
 import { logger } from 'hono/logger'
 import { z } from 'zod'
 

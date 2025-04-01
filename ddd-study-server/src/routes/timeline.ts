@@ -6,7 +6,8 @@ import { getGlobalTimeline } from '../usecases/get_global_timeline'
 
 export const RegisterGetTimeline = (app: Hono, postRepository: PostRepository, userRepository: UserRepository): void => {
   app.get('/timeline', (c) => {
-    const post = getGlobalTimeline(postRepository, userRepository)
-    return c.json(post)
+    const posts = getGlobalTimeline(postRepository, userRepository)
+    console.log(posts)
+    return c.json(posts)
   })
 }

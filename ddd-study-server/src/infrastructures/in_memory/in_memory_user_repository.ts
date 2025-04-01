@@ -4,11 +4,11 @@ import { UserRepository } from '../../repositories/user_repository'
 const SampleUsers: User[] = [
   {
     id: '1',
-    name: 'Alice',
+    username: 'Alice',
   },
   {
     id: '2',
-    name: 'Bob',
+    username: 'Bob',
   },
 
 ]
@@ -19,6 +19,10 @@ export class InMemoryUserRepository implements UserRepository {
 
   getUserById(id: string): User | null {
     return this.users.find(user => user.id === id) || null
+  }
+
+  getUserByUsername(username: string): User | null {
+    return this.users.find(user => user.username === username) || null
   }
 
   createUser(user: Omit<User, 'id'>): User | null {

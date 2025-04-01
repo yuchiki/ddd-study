@@ -1,11 +1,37 @@
 @port = 3000
 @url = http://localhost:{{port}}
 
-POST {{url}}/message
+
+###
+
+# login as Alice
+# @name login
+POST {{url}}/login
 Content-Type: application/json
 
 {
-  "userId": "2",
+  "username": "Alice",
+  "password": "Alice0521"
+}
+
+###
+# login as Bob
+# @name login
+POST {{url}}/login
+Content-Type: application/json
+
+{
+  "username": "Bob",
+  "password": "powerIsStrong@m1ghty"
+}
+
+###
+
+POST {{url}}/message
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
   "content": "soudane"
 }
 

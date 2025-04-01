@@ -1,10 +1,9 @@
 import { serve } from '@hono/node-server'
 
-import { newApp } from './app'
-import { InMemoryPostRepository } from './infrastructures/in_memory/in_memory_post_repository'
-import { InMemoryUserRepository } from './infrastructures/in_memory/in_memory_user_repository'
-import { InMemoryUserSecretRepository } from './infrastructures/in_memory/in_memory_user_secret_repository'
+import { DDDStudyAPIServer } from './app'
+import { INJECT_TARGETS } from './inject_targets'
+import { container } from './inversify.config'
 
-const app = newApp(new InMemoryPostRepository(), new InMemoryUserRepository(), new InMemoryUserSecretRepository())
+const server = container.get<DDDStudyAPIServer>(INJECT_TARGETS.DDDStudyAPIServer)
 
-serve(app)
+serve(server.getApp())

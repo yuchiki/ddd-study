@@ -2,97 +2,85 @@ import { zValidator } from '@hono/zod-validator'
 import { isLeft } from 'fp-ts/lib/Either'
 import { Hono } from 'hono'
 // eslint-disable-next-line import/no-unresolved
+import { jwt, sign } from 'hono/jwt'
+// eslint-disable-next-line import/no-unresolved
 import { logger } from 'hono/logger'
-import { sign } from 'jsonwebtoken'
+import { inject, injectable } from 'inversify'
 import { z } from 'zod'
 
 import { INJECT_TARGETS } from './inject_targets'
-import { container } from './inversify.config'
-import { PostRepository } from './repositories/post_repository'
-import { UserRepository } from './repositories/user_repository'
-import { UserSecretRepository } from './repositories/user_secret_repository'
+import { AuthenticateUserUseCase } from './usecases/authenticate_user'
 import { CreatePostUseCase } from './usecases/create_post'
-import { GetAuthenticatedUserUseCase } from './usecases/get_authenticated_user'
 import { GetGlobalTimelineUseCase } from './usecases/get_global_timeline'
-const getAuthenticatedUserUseCase = container.get<GetAuthenticatedUserUseCase>(INJECT_TARGETS.GetAuthenticatedUserUseCase)
-const createPostUseCase = container.get<CreatePostUseCase>(INJECT_TARGETS.CreatePostUseCase)
 
-export const registerPostMessage = (app: Hono): void => {
-  app.post('/message', zValidator('json',
-    z.object({
-      content: z.string(),
-    }),
-  ), (c) => {
-    const authorization = c.req.header('Authorization')
-    if (!authorization) {
-      return c.text('Unauthorized', 401)
-    }
+import type { JwtVariables } from 'hono/jwt'
 
-    const user = getAuthenticatedUserUseCase.getAuthenticatedUser(authorization)
+const JWT_SECRET = 'honya'
 
-    if (!user) {
-      return c.text('Unauthorized', 401)
-    }
+type Variables = JwtVariables<{
+  sub: string
+}>
+type App = Hono<{ Variables: Variables }>
 
-    const { content } = c.req.valid('json')
+@injectable()
+export class DDDStudyAPIServer {
+  private app: App
 
-    const post = createPostUseCase.createPost(user.id, content)
-    if (isLeft(post)) {
-      return c.text('Internal Server Error', 500)
-    }
+  constructor(
+    @inject(INJECT_TARGETS.authenticateUserUseCase) private readonly authenticateUserUseCase: AuthenticateUserUseCase,
+    @inject(INJECT_TARGETS.CreatePostUseCase) private readonly createPostUseCase: CreatePostUseCase,
+    @inject(INJECT_TARGETS.GetGlobalTimeLineUseCase) private readonly getGlobalTimelineUseCase: GetGlobalTimelineUseCase,
+  ) {
+  }
 
-    return c.json(post)
-  })
-}
+  getApp(): App {
+    const app = new Hono<{ Variables: Variables }>()
+    app.use(logger())
+    app.get('/', c => c.redirect('/timeline'))
 
-const getGlobalTimelineUseCase = container.get<GetGlobalTimelineUseCase>(INJECT_TARGETS.GetGlobalTimeLineUseCase)
+    app.post('/login',
+      zValidator('json',
+        z.object({
+          username: z.string(),
+          password: z.string(),
+        })),
 
-const registerGetTimeline = (app: Hono): void => {
-  app.get('/timeline', (c) => {
-    const posts = getGlobalTimelineUseCase.getGlobalTimeline()
-    console.log(posts)
-    return c.json(posts)
-  })
-}
+      async (c) => {
+        const { username, password } = c.req.valid('json')
+        const user = this.authenticateUserUseCase.authenticateUser(username, password)
+        if (!user) {
+          return c.text('Unauthorized', 401)
+        }
 
-const registerPostLogin = (app: Hono, userRepository: UserRepository, userSecretRepository: UserSecretRepository): void => {
-  app.post('/login',
-    zValidator('json',
-      z.object({
-        username: z.string(),
-        password: z.string(),
-      })),
-
-    (c) => {
-      const { username, password } = c.req.valid('json')
-
-      // get user  id
-
-      const user = userRepository.getUserByUsername(username)
-      if (!user) {
-        return c.json({ error: 'Unauthorized' }, 401)
-      }
-
-      if (!userSecretRepository.authenticateUser(user.id, password)) {
-        return c.json({ error: 'Unauthorized' }, 401)
-      }
-
-      const token = sign({ userId: user.id }, 'honya', {
-        expiresIn: '1h',
+        const payload = {
+          sub: user.id,
+          exp: Math.floor(Date.now() / 1000) + 60 * 5,
+        }
+        const token = await sign(payload, JWT_SECRET)
+        return c.json({ token })
       })
 
-      return c.json({ token })
+    app.get('/timeline', (c) => {
+      const posts = this.getGlobalTimelineUseCase.getGlobalTimeline()
+      return c.json(posts)
     })
-}
 
-export const newApp = (postRepository: PostRepository, userRepository: UserRepository, userSecretRepository: UserSecretRepository): Hono => {
-  const app = new Hono()
-  app.use(logger())
-  app.get('/', c => c.text('Hello Node.js!'))
+    app.use('/message', jwt({ secret: JWT_SECRET }))
+    app.post('/message', zValidator('json',
+      z.object({
+        content: z.string(),
+      }),
+    ), (c) => {
+      const { sub } = c.get('jwtPayload')
+      const { content } = c.req.valid('json')
 
-  registerGetTimeline(app)
-  registerPostMessage(app)
-  registerPostLogin(app, userRepository, userSecretRepository)
+      const post = this.createPostUseCase.createPost(sub, content)
 
-  return app
+      return isLeft(post)
+        ? c.text('Internal Server Error', 500)
+        : c.json(post)
+    })
+
+    return app
+  }
 }

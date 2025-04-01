@@ -1,3 +1,5 @@
+import { injectable } from 'inversify'
+
 import { User } from '../../models/user'
 import { UserRepository } from '../../repositories/user_repository'
 
@@ -13,6 +15,7 @@ const SampleUsers: User[] = [
 
 ]
 
+@injectable()
 export class InMemoryUserRepository implements UserRepository {
   users: User[] = [...SampleUsers]
   nextId: number = 1

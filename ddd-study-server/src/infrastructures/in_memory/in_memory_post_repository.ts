@@ -1,6 +1,9 @@
+import { injectable } from 'inversify'
+
 import { Post } from '../../models/post'
 import { PostRepository } from '../../repositories/post_repository'
 
+@injectable()
 export class InMemoryPostRepository implements PostRepository {
   posts: Post[] = []
   nextId: number = 1

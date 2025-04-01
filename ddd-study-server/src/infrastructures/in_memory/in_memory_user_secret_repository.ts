@@ -1,8 +1,11 @@
 import { createHash } from 'crypto'
 
+import { injectable } from 'inversify'
+
 import { UserSecret } from '../../models/userSecret'
 import { UserSecretRepository } from '../../repositories/user_secret_repository'
 
+@injectable()
 export class InMemoryUserSecretRepository implements UserSecretRepository {
   secrets: UserSecret[] = [
     {

@@ -1,32 +1,17 @@
 {
   "name": "ddd-study",
   "version": "1.0.0",
-  "main": "index.js",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
   "scripts": {
-    "start": "npm run build:live",
-    "build": "tsc -p .",
-    "build:live": "nodemon --watch 'ddd-study-server/src/**/*.ts' --exec \"ts-node\" ddd-study-server/src/index.ts"
+    "backend:dev": "npm --prefix backend run build:live",
+    "frontend:dev": "npm -w frontend run dev",
+    "dev": "npm-run-all --parallel backend:dev frontend:dev"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "devDependencies": {
-    "@types/jsonwebtoken": "^9.0.9",
-    "@types/node": "^22.13.10",
-    "nodemon": "^3.1.9",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.8.2"
-  },
-  "dependencies": {
-    "@hono/node-server": "^1.14.0",
-    "@hono/zod-validator": "^0.4.3",
-    "fp-ts": "^2.16.9",
-    "hono": "^4.7.5",
-    "inversify": "^7.3.0",
-    "jsonwebtoken": "^9.0.2",
-    "reflect-metadata": "^0.2.2",
-    "typescript-eslint": "^8.26.1",
-    "zod": "^3.24.2"
+    "npm-run-all": "^4.1.5"
   }
 }

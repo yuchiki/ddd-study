@@ -2,7 +2,6 @@ import { Container } from 'inversify'
 
 import 'reflect-metadata'
 
-import { DDDStudyAPIServer } from './web_server'
 import { InMemoryPostRepository } from './infrastructures/in_memory/in_memory_post_repository'
 import { InMemoryUserRepository } from './infrastructures/in_memory/in_memory_user_repository'
 import { InMemoryUserSecretRepository } from './infrastructures/in_memory/in_memory_user_secret_repository'
@@ -12,7 +11,9 @@ import { UserRepository } from './repositories/user_repository'
 import { UserSecretRepository } from './repositories/user_secret_repository'
 import { AuthenticateUserUseCase } from './usecases/authenticate_user'
 import { CreatePostUseCase as CreatePostUseCase } from './usecases/create_post'
+import { CreateUserUseCase } from './usecases/create_user'
 import { GetGlobalTimelineUseCase } from './usecases/get_global_timeline'
+import { DDDStudyAPIServer } from './web_server'
 
 export const container = new Container()
 
@@ -25,6 +26,7 @@ container.bind<UserSecretRepository>(INJECT_TARGETS.UserSecretRepository).to(InM
 container.bind<CreatePostUseCase>(INJECT_TARGETS.CreatePostUseCase).to(CreatePostUseCase).inSingletonScope()
 container.bind<GetGlobalTimelineUseCase>(INJECT_TARGETS.GetGlobalTimeLineUseCase).to(GetGlobalTimelineUseCase).inSingletonScope()
 container.bind<AuthenticateUserUseCase>(INJECT_TARGETS.authenticateUserUseCase).to(AuthenticateUserUseCase).inSingletonScope()
+container.bind<CreateUserUseCase>(INJECT_TARGETS.createUserUseCase).to(CreateUserUseCase).inSingletonScope()
 
 // app
 container.bind<DDDStudyAPIServer>(INJECT_TARGETS.DDDStudyAPIServer).to(DDDStudyAPIServer).inSingletonScope()

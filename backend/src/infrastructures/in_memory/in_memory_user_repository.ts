@@ -18,7 +18,7 @@ const SampleUsers: User[] = [
 @injectable()
 export class InMemoryUserRepository implements UserRepository {
   users: User[] = [...SampleUsers]
-  nextId: number = 1
+  nextId: number = this.users.length + 1
 
   getUserById(id: string): User | null {
     return this.users.find(user => user.id === id) || null

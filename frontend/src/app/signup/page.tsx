@@ -15,7 +15,7 @@ type FormState = {
   console.log(newFormState);
 
   const json = JSON.stringify(newFormState);
-  const URL = "http://localhost:3001/login";
+  const URL = "http://localhost:3001/signup";
   const requestOptions = {
     method: "POST",
     headers: {
@@ -24,26 +24,18 @@ type FormState = {
     body: json,
   };
    const response = await fetch(URL, requestOptions)
-   if (response.status !== 200) {
-    console.log("error");
-    return newFormState;
-  }
-
    const data = await response.json()
   console.log(data);
 
-
-
-  const token = data.token;
-
-  localStorage.setItem("token", token);
-  localStorage.setItem("username", newFormState.username);
-
-  redirect("/timeline");
+  if (response.status !== 200) {
+    console.log("error");
+    return newFormState;
+  }
+  redirect("/login");
 }
 
 
-export default function Login() {
+export default function Signup() {
   const URL = "http://localhost:3001";
   const [formData, dispatch] =
     useActionState(
@@ -56,8 +48,7 @@ export default function Login() {
 
   return (
     <div className="login">
-      <a href="signup">新規アカウント作成</a>
-      <h1>ログイン</h1>
+      <h1>アカウント作成</h1>
       <form action={dispatch}>
         <div>
           <label htmlFor="username">ユーザーネーム</label>
@@ -67,7 +58,7 @@ export default function Login() {
           <label htmlFor="password">パスワード</label>
           <input type="password" id="password" name="password" required />
         </div>
-        <button type="submit">ログイン</button>
+        <button type="submit">作成</button>
       </form>
     </div>
   );

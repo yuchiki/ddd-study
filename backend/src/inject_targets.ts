@@ -4,6 +4,7 @@ export const INJECT_TARGETS = {
   GetGlobalTimeLineUseCase: Symbol.for('GetGlobalTimeLineUseCase'),
   GetAuthenticatedUserUseCase: Symbol.for('GetAuthenticatedUserUseCase'),
   authenticateUserUseCase: Symbol.for('authenticateUserUseCase'),
+  createUserUseCase: Symbol.for('createUserUseCase'),
 
   // Repository
   PostRepository: Symbol.for('PostRepository'),

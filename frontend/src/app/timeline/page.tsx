@@ -60,15 +60,16 @@ export default  function Timeline() {
   const [username, setUsername] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
 
-  if (!username) {
-    redirect("/login");
-  }
 
     const [formData, dispatch] = useActionState(postAction, "")
 
   useEffect(() => {
     const storedUsername = localStorage.getItem("username");
     const storedToken = localStorage.getItem("token");
+
+    if (!storedUsername) {
+      redirect("/login");
+    }
 
     if (storedUsername) {
       setUsername(storedUsername);

@@ -18,6 +18,7 @@ import { z } from 'zod'
 import { INJECT_TARGETS } from './inject_targets'
 import { AuthenticateUserUseCase } from './usecases/authenticate_user'
 import { CreatePostUseCase } from './usecases/create_post'
+import { CreateUserUseCase } from './usecases/create_user'
 import { GetGlobalTimelineUseCase } from './usecases/get_global_timeline'
 
 import type { JwtVariables } from 'hono/jwt'
@@ -37,6 +38,7 @@ export class DDDStudyAPIServer {
     @inject(INJECT_TARGETS.authenticateUserUseCase) private readonly authenticateUserUseCase: AuthenticateUserUseCase,
     @inject(INJECT_TARGETS.CreatePostUseCase) private readonly createPostUseCase: CreatePostUseCase,
     @inject(INJECT_TARGETS.GetGlobalTimeLineUseCase) private readonly getGlobalTimelineUseCase: GetGlobalTimelineUseCase,
+    @inject(INJECT_TARGETS.createUserUseCase) private readonly createUserUseCase: CreateUserUseCase,
   ) {
   }
 
@@ -88,6 +90,21 @@ export class DDDStudyAPIServer {
       return isLeft(post)
         ? c.text('Internal Server Error', 500)
         : c.json(post)
+    })
+
+    app.post('/signup', zValidator('json',
+      z.object({
+        username: z.string(),
+        password: z.string(),
+      }),
+    ), (c) => {
+      const { username, password } = c.req.valid('json')
+      const user = this.createUserUseCase.createUser(username, password)
+      if (isLeft(user)) {
+        return c.text('Unauthorized', 401)
+      }
+
+      return c.json(user)
     })
 
     return app

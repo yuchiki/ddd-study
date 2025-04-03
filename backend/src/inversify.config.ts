@@ -2,7 +2,7 @@ import { Container } from 'inversify'
 
 import 'reflect-metadata'
 
-import { DDDStudyAPIServer } from './app'
+import { DDDStudyAPIServer } from './web_server'
 import { InMemoryPostRepository } from './infrastructures/in_memory/in_memory_post_repository'
 import { InMemoryUserRepository } from './infrastructures/in_memory/in_memory_user_repository'
 import { InMemoryUserSecretRepository } from './infrastructures/in_memory/in_memory_user_secret_repository'

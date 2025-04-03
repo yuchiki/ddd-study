@@ -8,9 +8,10 @@ export class InMemoryPostRepository implements PostRepository {
   posts: Post[] = []
   nextId: number = 1
 
-  createPost(post: Omit<Post, 'id'>): Post {
+  createPost(post: Omit<Post, 'id' | 'createdAt'>): Post {
     const newPost: Post = {
       id: this.nextId.toString(),
+      createdAt: new Date(),
       ...post,
     }
     this.posts.push(newPost)

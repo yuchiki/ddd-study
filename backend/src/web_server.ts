@@ -1,11 +1,18 @@
+import { AddressInfo } from 'node:net'
+
+import { serve as original_serve, ServerType } from '@hono/node-server'
+import { Options } from '@hono/node-server/dist/types'
 import { zValidator } from '@hono/zod-validator'
 import { isLeft } from 'fp-ts/lib/Either'
 import { Hono } from 'hono'
+// eslint-disable-next-line import/no-unresolved
+import { cors } from 'hono/cors'
 // eslint-disable-next-line import/no-unresolved
 import { jwt, sign } from 'hono/jwt'
 // eslint-disable-next-line import/no-unresolved
 import { logger } from 'hono/logger'
 import { inject, injectable } from 'inversify'
+import { Server } from 'socket.io'
 import { z } from 'zod'
 
 import { INJECT_TARGETS } from './inject_targets'
@@ -36,7 +43,9 @@ export class DDDStudyAPIServer {
   getApp(): App {
     const app = new Hono<{ Variables: Variables }>()
     app.use(logger())
-    app.get('/', c => c.redirect('/timeline'))
+    app.use('/*', cors({
+      origin: 'http://localhost:3000',
+    }))
 
     app.post('/login',
       zValidator('json',
@@ -82,5 +91,43 @@ export class DDDStudyAPIServer {
     })
 
     return app
+  }
+
+  getIoServer(server: ServerType): Server {
+    const ioServer = new Server(server, {
+      path: '/socket.io',
+      serveClient: false,
+      cors: {
+        origin: 'http://localhost:3000',
+      },
+    })
+
+    ioServer.on('error', (err) => {
+      console.log(err)
+    })
+    ioServer.on('connection', () => {
+      console.log('Client connected')
+    })
+
+    ioServer.on('disconnect', () => {
+      console.log('Client disconnected')
+    })
+
+    setInterval(() => {
+      const posts = this.getGlobalTimelineUseCase.getGlobalTimeline()
+      ioServer.emit('timelineListener', posts)
+    }, 1000)
+
+    return ioServer
+  }
+
+  serve(port: number, listeningListener?: (info: AddressInfo) => void): Server {
+    const app = this.getApp()
+    const options: Options = {
+      fetch: app.fetch,
+      port,
+    }
+    const server = original_serve(options, listeningListener)
+    return this.getIoServer(server)
   }
 }

@@ -14,7 +14,7 @@ export class CreatePostUseCase {
   }
 
   createPost(user_id: string, content: string): UseCaseResponse<never, Post> {
-    const post: Omit<Post, 'id'> = {
+    const post: Omit<Post, 'id' | 'createdAt'> = {
       userId: user_id,
       content: content,
     }

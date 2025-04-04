@@ -36,7 +36,6 @@ type FormState = {
 
 
 export default function Signup() {
-  const URL = "http://localhost:3001";
   const [formData, dispatch] =
     useActionState(
       postAction,
@@ -47,7 +46,7 @@ export default function Signup() {
     )
 
   return (
-    <div className="login">
+    <div className="signup">
       <h1>アカウント作成</h1>
       <form action={dispatch}>
         <div>

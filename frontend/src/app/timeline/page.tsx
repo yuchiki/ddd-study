@@ -1,9 +1,7 @@
 "use client"
-
 import { isLeft } from 'fp-ts/lib/Either';
 import styles from './page.module.css'
 import { redirect } from 'next/navigation';
-
 import { useActionState, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 async function  postAction(message:string, formData:FormData): Promise<string>  {
@@ -49,7 +47,6 @@ async function  postAction(message:string, formData:FormData): Promise<string>  
 
   return ""
 }
-
 
 
 
@@ -125,7 +122,7 @@ export default  function Timeline() {
     <div className={styles.posts}>
     <a href={'/login'}>ログイン</a>
     <a href={'/logout'}>ログアウト</a>
-      <h1>{username}'s タイムライン</h1>
+      <h2>{username}</h2>
       <form className={styles.form} action={dispatch}>
           <input type="text" id="message" name="message" className={styles.input} required />
           <br />

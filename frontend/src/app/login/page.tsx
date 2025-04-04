@@ -55,7 +55,7 @@ export default function Login() {
     )
 
   return (
-    <div className="login">
+    <div className="signup">
       <a href="signup">新規アカウント作成</a>
       <h1>ログイン</h1>
       <form action={dispatch}>

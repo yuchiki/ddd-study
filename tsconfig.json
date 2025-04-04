@@ -25,7 +25,7 @@
       "./node_modules/@types"
     ]
   },
-  "include": ["**/*.ts", "eslint.config.mjs"],
+  "include": ["**/*.ts","**/*.tsx", "backend/eslint.config.mjs", "frontend/eslint.config.mjs"],
   "exclude": [
     "node_modules",
     "cdk.out"

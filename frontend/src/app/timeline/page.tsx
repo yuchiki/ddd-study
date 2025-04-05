@@ -1,20 +1,20 @@
 'use client'
 import { useActionState, useEffect, useState } from 'react'
 
-import { isLeft } from 'fp-ts/lib/Either'
+import { Either, match } from 'fp-ts/lib/Either'
 import { redirect } from 'next/navigation'
 import { io } from 'socket.io-client'
 
 import styles from './page.module.css'
 async function postAction(message: string, formData: FormData): Promise<string> {
   const formMessage = formData.get('message')
+  const token = localStorage.getItem('token')
   if (formMessage === null) {
     console.log('error')
     return message
   }
 
-  const token = localStorage.getItem('token')
-  if (!token) {
+  if (token === null) {
     console.log('error')
     return message
   }
@@ -25,7 +25,7 @@ async function postAction(message: string, formData: FormData): Promise<string> 
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      'Authorization': `Bearer ${token}`,
     },
     body: json,
   }
@@ -35,9 +35,6 @@ async function postAction(message: string, formData: FormData): Promise<string> 
     redirect('/login')
   }
 
-  const data = await response.json()
-  console.log(data)
-
   if (response.status !== 200) {
     console.log('error')
     return message
@@ -46,10 +43,12 @@ async function postAction(message: string, formData: FormData): Promise<string> 
   return ''
 }
 
+type Post = { id: string, userId: string, content: string, createdAt: Date, user: { id: string, username: string } }
+
 export default function Timeline() {
   const [, setIsConnected] = useState(false)
   const [, setTransport] = useState('N/A')
-  const [posts, setPosts] = useState<{ id: string, userId: string, content: string, createdAt: Date }[]>([])
+  const [posts, setPosts] = useState<Post[]>([])
   const [username, setUsername] = useState<string | null>(null)
   const [, setToken] = useState<string | null>(null)
 
@@ -98,12 +97,15 @@ export default function Timeline() {
       console.error('Socket error:', error)
     })
     socket.on('disconnect', onDisconnect)
-    socket.on('timelineListener', (posts) => {
-      if (isLeft(posts)) {
-        console.log('Error: ', posts)
-      }
-
-      setPosts(posts.right)
+    socket.on('timelineListener', (posts: Either<unknown, Post[]>) => {
+      match(
+        () => {
+          console.log('Error: ')
+        },
+        (posts: Post[]) => {
+          setPosts(posts)
+        },
+      )(posts)
     })
 
     return () => {
@@ -126,7 +128,7 @@ export default function Timeline() {
       </form>
       <div>
         <ul>
-          {posts.toReversed().map((post: any) => (
+          {posts.toReversed().map(post => (
             <li key={post.id}>
               <h2>
                 @

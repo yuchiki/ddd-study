@@ -1,74 +1,66 @@
-"use client";
-import { useActionState } from "react";
-import { redirect } from "next/navigation";
+'use client'
 
-type FormState = {
-  username: string;
-  password: string;
-}
+import { Box, FormControl, Stack, TextField } from '@mui/material'
+import { redirect } from 'next/navigation'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 
- async function  postAction(formState:FormState, formData:FormData): Promise<FormState>  {
-  const newFormState = {
-    username: formData.get("username") as string,
-    password: formData.get("password") as string,
-  }
-  console.log(newFormState);
+const LoginResponseSchema = z.object({
+  token: z.string(),
+})
 
-  const json = JSON.stringify(newFormState);
-  const URL = "http://localhost:3001/login";
+const onSubmit = async ({ username, password }: { username: string, password: string }): Promise<void> => {
+  const json = JSON.stringify({ username, password })
+  const URL = 'http://localhost:3001/login'
   const requestOptions = {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: json,
-  };
-   const response = await fetch(URL, requestOptions)
-   if (response.status !== 200) {
-    console.log("error");
-    return newFormState;
+  }
+  const response = await fetch(URL, requestOptions)
+    .then(res => res.json())
+    .then(res => LoginResponseSchema.safeParse(res))
+
+  if (!response.success) {
+    console.log('error:', response.error)
+    return
   }
 
-   const data = await response.json()
-  console.log(data);
+  const token = response.data.token
+  localStorage.setItem('token', token)
+  localStorage.setItem('username', username)
 
-
-
-  const token = data.token;
-
-  localStorage.setItem("token", token);
-  localStorage.setItem("username", newFormState.username);
-
-  redirect("/timeline");
+  redirect('/timeline')
 }
 
+type LoginFormInfo = {
+  username: string
+  password: string
+}
 
 export default function Login() {
-  const URL = "http://localhost:3001";
-  const [formData, dispatch] =
-    useActionState(
-      postAction,
-      {
-        username: "",
-        password: "",
-      }
-    )
+  const { register, handleSubmit } = useForm<LoginFormInfo>({
+    defaultValues: {
+      username: '',
+      password: '',
+    },
+  })
 
   return (
-    <div className="signup">
-      <a href="signup">新規アカウント作成</a>
+    <div>
       <h1>ログイン</h1>
-      <form action={dispatch}>
-        <div>
-          <label htmlFor="username">ユーザーネーム</label>
-          <input type="text" id="username" name="username" required />
-        </div>
-        <div>
-          <label htmlFor="password">パスワード</label>
-          <input type="password" id="password" name="password" required />
-        </div>
-        <button type="submit">ログイン</button>
-      </form>
+
+      <Box component="form" onSubmit={e => void handleSubmit(onSubmit)(e)}>
+        <Stack spacing={2}>
+          <FormControl>
+            <TextField id="username" label="ユーザーネーム" {...register('username')} />
+            <TextField id="password" label="パスワード" type="password" {...register('password')} />
+            <button type="submit">ログイン</button>
+          </FormControl>
+        </Stack>
+      </Box>
     </div>
-  );
+  )
 }

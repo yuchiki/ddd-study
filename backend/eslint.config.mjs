@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+//
+
 import { FlatCompat } from '@eslint/eslintrc'
 import js from '@eslint/js'
 import stylistic from '@stylistic/eslint-plugin'
@@ -10,9 +10,11 @@ import ts from 'typescript-eslint'
 const compat = new FlatCompat()
 
 export default ts.config(
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
   js.configs.recommended,
-  ...compat.extends('plugin:import/typescript'),
   ...ts.configs.strictTypeChecked,
+  ...compat.extends('plugin:import/typescript'),
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
   importPlugin.flatConfigs.recommended,
   stylistic.configs['recommended'],
   {
@@ -47,6 +49,7 @@ export default ts.config(
         projectService: {
           allowDefaultProject: ['*.js', '*.mjs'],
         },
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         tsconfigRootDir: import.meta.dirname,
       },
     },

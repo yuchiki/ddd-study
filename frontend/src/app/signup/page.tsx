@@ -1,48 +1,48 @@
-"use client";
-import { useActionState } from "react";
-import { redirect } from "next/navigation";
+'use client'
+import { useActionState } from 'react'
+
+import { redirect } from 'next/navigation'
 
 type FormState = {
-  username: string;
-  password: string;
+  username: string
+  password: string
 }
 
- async function  postAction(formState:FormState, formData:FormData): Promise<FormState>  {
+async function postAction(formState: FormState, formData: FormData): Promise<FormState> {
   const newFormState = {
-    username: formData.get("username") as string,
-    password: formData.get("password") as string,
+    username: formData.get('username') as string,
+    password: formData.get('password') as string,
   }
-  console.log(newFormState);
+  console.log(newFormState)
 
-  const json = JSON.stringify(newFormState);
-  const URL = "http://localhost:3001/signup";
+  const json = JSON.stringify(newFormState)
+  const URL = 'http://localhost:3001/signup'
   const requestOptions = {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: json,
-  };
-   const response = await fetch(URL, requestOptions)
-   const data = await response.json()
-  console.log(data);
+  }
+  const response = await fetch(URL, requestOptions)
+  const data = await response.json()
+  console.log(data)
 
   if (response.status !== 200) {
-    console.log("error");
-    return newFormState;
+    console.log('error')
+    return newFormState
   }
-  redirect("/login");
+  redirect('/login')
 }
 
-
 export default function Signup() {
-  const [formData, dispatch] =
-    useActionState(
+  const [, dispatch]
+    = useActionState(
       postAction,
       {
-        username: "",
-        password: "",
-      }
+        username: '',
+        password: '',
+      },
     )
 
   return (
@@ -60,5 +60,5 @@ export default function Signup() {
         <button type="submit">作成</button>
       </form>
     </div>
-  );
+  )
 }

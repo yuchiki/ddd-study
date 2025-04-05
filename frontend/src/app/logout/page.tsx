@@ -1,13 +1,13 @@
-"use client";
+'use client'
 
-import { redirect } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect } from 'react'
 
-export default async function Logout() {
+import { redirect } from 'next/navigation'
 
+export default function Logout() {
   useEffect(() => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("username");
-    redirect("/");
-  }, []);
+    localStorage.removeItem('token')
+    localStorage.removeItem('username')
+    redirect('/')
+  }, [])
 }

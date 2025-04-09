@@ -1,36 +1,20 @@
 'use client'
 
 import { Box, FormControl, Stack, TextField } from '@mui/material'
+import { isLeft } from 'fp-ts/lib/Either'
 import { redirect } from 'next/navigation'
 import { useForm } from 'react-hook-form'
-import { z } from 'zod'
 
-const LoginResponseSchema = z.object({
-  token: z.string(),
-})
+import { LoginClient } from '@/api/backendClient'
 
 const onSubmit = async ({ username, password }: { username: string, password: string }): Promise<void> => {
-  const json = JSON.stringify({ username, password })
-  const URL = 'http://localhost:3001/login'
-  const requestOptions = {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: json,
-  }
-  const response = await fetch(URL, requestOptions)
-    .then(res => res.json())
-    .then(res => LoginResponseSchema.safeParse(res))
+  const client = LoginClient
 
-  if (!response.success) {
-    console.log('error:', response.error)
+  const result = await client.Login(username, password)
+  if (isLeft(result)) {
+    console.log('error:', result.left)
     return
   }
-
-  const token = response.data.token
-  localStorage.setItem('token', token)
-  localStorage.setItem('username', username)
 
   redirect('/timeline')
 }
@@ -53,13 +37,13 @@ export default function Login() {
       <h1>ログイン</h1>
 
       <Box component="form" onSubmit={e => void handleSubmit(onSubmit)(e)}>
-        <Stack spacing={2}>
-          <FormControl>
+        <FormControl>
+          <Stack spacing={2}>
             <TextField id="username" label="ユーザーネーム" {...register('username')} />
             <TextField id="password" label="パスワード" type="password" {...register('password')} />
             <button type="submit">ログイン</button>
-          </FormControl>
-        </Stack>
+          </Stack>
+        </FormControl>
       </Box>
     </div>
   )

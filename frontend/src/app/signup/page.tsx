@@ -1,23 +1,18 @@
 'use client'
 
 import { Box, FormControl, Stack, TextField } from '@mui/material'
+import { isLeft } from 'fp-ts/lib/Either'
 import { redirect } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 
-const onSubmit = async ({ username, password }: { username: string, password: string }): Promise<void> => {
-  const json = JSON.stringify({ username, password })
-  const URL = 'http://localhost:3001/signup'
-  const requestOptions = {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: json,
-  }
-  const response = await fetch(URL, requestOptions)
+import { PostSignupClient } from '@/api/backendClient'
 
-  if (!response.ok) {
-    console.log('error:', response.status)
+const onSubmit = async ({ username, password }: { username: string, password: string }): Promise<void> => {
+  const client = PostSignupClient
+  const response = await client.post({ username: username, password: password })
+
+  if (isLeft(response)) {
+    console.log('error:', response.left)
     return
   }
 
@@ -40,15 +35,14 @@ export default function Signup() {
   return (
     <div>
       <h1>アカウント新規作成</h1>
-
       <Box component="form" onSubmit={e => void handleSubmit(onSubmit)(e)}>
-        <Stack spacing={2}>
-          <FormControl>
+        <FormControl>
+          <Stack spacing={2}>
             <TextField id="username" label="ユーザーネーム" {...register('username')} />
             <TextField id="password" label="パスワード" type="password" {...register('password')} />
             <button type="submit">新規作成</button>
-          </FormControl>
-        </Stack>
+          </Stack>
+        </FormControl>
       </Box>
     </div>
   )

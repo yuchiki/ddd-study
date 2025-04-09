@@ -1,49 +1,59 @@
 'use client'
-import { useActionState, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
-import { Either, match } from 'fp-ts/lib/Either'
+import { Box, FormControl, Stack, TextField } from '@mui/material'
+import { Either, isLeft, match } from 'fp-ts/lib/Either'
 import { redirect } from 'next/navigation'
+import { useForm } from 'react-hook-form'
 import { io } from 'socket.io-client'
 
+import { PostMessageClient } from '@/api/backendClient'
+import { resetLoginStatus, getAuthInfo } from '@/authStorage'
+
 import styles from './page.module.css'
-async function postAction(message: string, formData: FormData): Promise<string> {
-  const formMessage = formData.get('message')
-  const token = localStorage.getItem('token')
-  if (formMessage === null) {
-    console.log('error')
-    return message
-  }
 
-  if (token === null) {
-    console.log('error')
-    return message
-  }
+const onSubmit = (reset: () => void): ({ message }: { message: string }) => Promise<void> => {
+  return async ({ message }: { message: string }) => {
+    const client = PostMessageClient
+    const result = await client.post({ content: message })
 
-  const json = JSON.stringify({ content: formMessage })
-  const URL = 'http://localhost:3001/message'
-  const requestOptions = {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    body: json,
-  }
-  const response = await fetch(URL, requestOptions)
+    if (isLeft(result)) {
+      switch (result.left.type) {
+        case 'UnAuthorizedError':
+          console.log('error:', result.left)
+          resetLoginStatus()
+          redirect('/login')
+        // eslint-disable-next-line no-fallthrough
+        default:
+          console.log('error:', result.left)
+          return
+      }
+    }
 
-  if (response.status === 401) {
-    redirect('/login')
+    reset()
   }
-
-  if (response.status !== 200) {
-    console.log('error')
-    return message
-  }
-
-  return ''
 }
 
 type Post = { id: string, userId: string, content: string, createdAt: Date, user: { id: string, username: string } }
+
+function EditingMessageForm() {
+  const { register, handleSubmit, reset } = useForm<{ message: string }>({
+    defaultValues: {
+      message: '',
+    },
+  })
+
+  return (
+    <Box component="form" onSubmit={e => void handleSubmit(onSubmit(reset))(e)}>
+      <FormControl>
+        <Stack spacing={2}>
+          <TextField id="message" {...register('message')} />
+          <button type="submit">送信</button>
+        </Stack>
+      </FormControl>
+    </Box>
+  )
+}
 
 export default function Timeline() {
   const [, setIsConnected] = useState(false)
@@ -52,22 +62,15 @@ export default function Timeline() {
   const [username, setUsername] = useState<string | null>(null)
   const [, setToken] = useState<string | null>(null)
 
-  const [, dispatch] = useActionState(postAction, '')
-
   useEffect(() => {
-    const storedUsername = localStorage.getItem('username')
-    const storedToken = localStorage.getItem('token')
+    const authInfo = getAuthInfo()
 
-    if (!storedUsername) {
+    if (!authInfo) {
       redirect('/login')
     }
 
-    if (storedUsername) {
-      setUsername(storedUsername)
-    }
-    if (storedToken) {
-      setToken(storedToken)
-    }
+    setUsername(authInfo.username)
+    setToken(authInfo.token)
 
     const URL = 'http://localhost:3001'
     const socket = io(URL)
@@ -121,11 +124,7 @@ export default function Timeline() {
         {username}
         &apos;s Timeline
       </h2>
-      <form className={styles.form} action={dispatch}>
-        <input type="text" id="message" name="message" className={styles.input} required />
-        <br />
-        <button type="submit">送信</button>
-      </form>
+      <EditingMessageForm />
       <div>
         <ul>
           {posts.toReversed().map(post => (
